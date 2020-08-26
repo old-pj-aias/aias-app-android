@@ -1,4 +1,4 @@
-package com.project_aias.aias
+package com.aias.aias
 
 import org.junit.Test
 
