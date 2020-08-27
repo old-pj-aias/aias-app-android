@@ -27,6 +27,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         Toast.makeText(this, blindedDigest, Toast.LENGTH_LONG).show();
 
         Aias.setSubset(subset);
-
+        val checkParam = Aias.generateCheckParameter();
+        Toast.makeText(this, checkParam, Toast.LENGTH_LONG).show();
     }
 }
