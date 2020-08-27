@@ -22,6 +22,8 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         setContentView(R.layout.activity_main)
 
         Aias.new(publicKey);
-        Toast.makeText(this, publicKey, Toast.LENGTH_SHORT).show();
+        val blindedDigest = Aias.blind("aaaa");
+
+        Toast.makeText(this, blindedDigest, Toast.LENGTH_SHORT).show();
     }
 }
