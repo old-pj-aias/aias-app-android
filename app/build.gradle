@@ -33,7 +33,7 @@ android {
 apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
 
 cargo {
-    module  = "../aiascore/"
+    module  = "../aiascore/android"
     libname = "aiascore"
     targets = ["arm", "x86"]
     verbose = true
