@@ -1,13 +1,8 @@
 package com.aias.aias
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.telephony.TelephonyManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 
 
 class MainActivity : AppCompatActivity() {
