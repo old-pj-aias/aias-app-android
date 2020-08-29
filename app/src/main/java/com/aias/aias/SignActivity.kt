@@ -3,13 +3,14 @@ package com.aias.aias
 import android.app.PendingIntent.getActivity
 import android.content.DialogInterface
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import kotlin.concurrent.thread
 
 
-class SignActivity : AppCompatActivity() {
+class SignActivity : AppCompatActivity(), View.OnClickListener {
     val publicKey = """-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxXo2zWkciUEZBcm/Exk8
 Zac8NWskP59EAVFlO218xIXOV0FfphPB/tnbQh7GDXddo7XVEptHdHXyJlXXLihb
@@ -49,6 +50,14 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                 finish()
             })
             .show()
-
     }
+
+    override fun onClick(v: View?) {
+        when (v!!.getId()) {
+            R.id.submit_phone -> {
+                setContentView(R.layout.activity_sms_code)
+            }
+        }
+    }
+
 }
