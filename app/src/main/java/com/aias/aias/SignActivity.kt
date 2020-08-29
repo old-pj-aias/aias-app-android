@@ -1,8 +1,13 @@
 package com.aias.aias
 
+import android.app.PendingIntent.getActivity
+import android.content.DialogInterface
 import android.os.Bundle
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import kotlin.concurrent.thread
+
 
 class SignActivity : AppCompatActivity() {
     val publicKey = """-----BEGIN PUBLIC KEY-----
@@ -21,16 +26,29 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_phone)
 
-        Aias.new(publicKey, publicKey);
+        AlertDialog.Builder(this)
+            .setTitle("warning")
+            .setMessage("Are you trust calling app?")
+            .setPositiveButton("OK") { dialog, which ->
+                thread {
+                    Aias.new(publicKey, publicKey);
 
-        val text = intent.getStringExtra("message")
-        val blindedDigest = Aias.blind(text);
+                    val text = intent.getStringExtra("message")
+                    val blindedDigest = Aias.blind(text);
+                    Aias.setSubset(subset)
+                    val checkParam = Aias.generateCheckParameter();
 
+                    runOnUiThread {
+                        Toast.makeText(this, blindedDigest, Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, checkParam, Toast.LENGTH_LONG).show()
+                    }
+                }
 
-        Toast.makeText(this, blindedDigest, Toast.LENGTH_LONG).show();
+            }
+            .setNegativeButton("Cancel", { dialogInterface: DialogInterface, i: Int ->
+                finish()
+            })
+            .show()
 
-        Aias.setSubset(subset);
-        val checkParam = Aias.generateCheckParameter();
-        Toast.makeText(this, checkParam, Toast.LENGTH_LONG).show();
     }
 }
