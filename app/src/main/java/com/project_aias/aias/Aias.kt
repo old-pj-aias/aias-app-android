@@ -1,7 +1,7 @@
 package com.aias.aias
 
 object Aias {
-    external fun new(input: String?)
+    external fun new(input1: String?, input2: String?)
     external fun blind(input: String?): String?
     external fun setSubset(input: String?)
     external fun generateCheckParameter(): String?

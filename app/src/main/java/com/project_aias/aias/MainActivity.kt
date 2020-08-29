@@ -1,9 +1,14 @@
 package com.aias.aias
 
-import androidx.appcompat.app.AppCompatActivity
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
+import android.telephony.TelephonyManager
 import android.widget.Toast
-import com.aias.aias.Aias
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+
 
 class MainActivity : AppCompatActivity() {
     val publicKey = """-----BEGIN PUBLIC KEY-----
@@ -22,7 +27,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        Aias.new(publicKey);
+        Aias.new(publicKey, publicKey);
         val blindedDigest = Aias.blind("aaaa");
         Toast.makeText(this, blindedDigest, Toast.LENGTH_LONG).show();
 
