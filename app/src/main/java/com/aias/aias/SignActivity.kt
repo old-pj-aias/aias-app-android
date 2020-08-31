@@ -19,37 +19,17 @@ Zac8NWskP59EAVFlO218xIXOV0FfphPB/tnbQh7GDXddo7XVEptHdHXyJlXXLihb
 MDdfFUaoxMfRN/+Hl9iqiJovKUJQ3545N2fDYdd0eqSlqL1N5xJxYX1GDMtGZgME
 hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 /wIDAQAB
------END PUBLIC KEY-----
-"""
+-----END PUBLIC KEY-----"""
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_phone)
 
-        val text = intent.getStringExtra("message")
 
         AlertDialog.Builder(this)
             .setTitle("warning")
             .setMessage("Are you trust calling app?")
             .setPositiveButton("OK") { dialog, which ->
-                thread {
-                    Aias.new(publicKey, publicKey);
-
-                    val blindedDigest = Aias.blind(text);
-
-                    val (_, response, _) = Fuel.post("http://192.168.0.24:8080/ready")
-                        .body(blindedDigest!!)
-                        .response()
-
-                    val subset = String(response.data)
-                    Aias.setSubset(subset)
-
-                    val checkParam = Aias.generateCheckParameter();
-
-                    runOnUiThread {
-                        Toast.makeText(this, subset, Toast.LENGTH_LONG).show();
-                        Toast.makeText(this, checkParam, Toast.LENGTH_LONG).show();
-                    }
-                }
 
             }
             .setNegativeButton("Cancel", { dialogInterface: DialogInterface, i: Int ->
@@ -62,6 +42,34 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         when (v!!.getId()) {
             R.id.submit_phone -> {
                 setContentView(R.layout.activity_sms_code)
+            }
+        }
+
+        val text = intent.getStringExtra("message")
+
+        thread {
+            Aias.new(publicKey, publicKey);
+
+            val blindedDigest = Aias.blind(text);
+
+            val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
+                .body(blindedDigest!!)
+                .response()
+
+            val subset = String(readyResponse.data)
+            Aias.setSubset(subset)
+
+            val checkParam = Aias.generateCheckParameter();
+
+            val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
+                .body(checkParam!!)
+                .response()
+
+            val blindSignature = String(signResponse.data)
+            val signature = Aias.unblind(blindSignature)
+
+            runOnUiThread {
+                Toast.makeText(this, signature, Toast.LENGTH_LONG).show();
             }
         }
     }
