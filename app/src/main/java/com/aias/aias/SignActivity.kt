@@ -1,6 +1,8 @@
 package com.aias.aias
 
+import android.app.Activity
 import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -24,7 +26,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_phone)
-
+        setResult(Activity.RESULT_CANCELED);
 
         AlertDialog.Builder(this)
             .setTitle("warning")
@@ -33,19 +35,21 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
             }
             .setNegativeButton("Cancel", { dialogInterface: DialogInterface, i: Int ->
+                setResult(Activity.RESULT_CANCELED)
                 finish()
             })
             .show()
     }
 
     override fun onClick(v: View?) {
+        val intent = intent
+        val text = intent.getStringExtra("message")
+
         when (v!!.getId()) {
             R.id.submit_phone -> {
                 setContentView(R.layout.activity_sms_code)
             }
         }
-
-        val text = intent.getStringExtra("message")
 
         thread {
             Aias.new(publicKey, publicKey);
@@ -70,6 +74,10 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
             runOnUiThread {
                 Toast.makeText(this, signature, Toast.LENGTH_LONG).show();
+
+                intent.putExtra("message", signature)
+                setResult(Activity.RESULT_OK, intent)
+                finish()
             }
         }
     }
