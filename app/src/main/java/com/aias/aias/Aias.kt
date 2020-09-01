@@ -8,6 +8,6 @@ object Aias {
     external fun unblind(input: String?): String?
 
     init {
-        System.loadLibrary("aiascore")
+        System.loadLibrary("aiascoreandroid")
     }
 }
