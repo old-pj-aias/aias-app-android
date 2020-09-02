@@ -154,11 +154,12 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
                     val id = codeRespJson.id;
 
-                    Aias.new(signerKey, ejPubkey);
+                    Aias.new(signerKey, ejPubkey, id.toString());
 
-                    val blindedDigest = Aias.blind(text);
+                    val blindedDigest = Aias.ready(text, ejPubkey);
 
                     val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
+                        .header(cookieHeader)
                         .body(blindedDigest!!)
                         .response()
 
@@ -168,6 +169,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                     val checkParam = Aias.generateCheckParameter();
 
                     val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
+                        .header(cookieHeader)
                         .body(checkParam!!)
                         .response()
 
