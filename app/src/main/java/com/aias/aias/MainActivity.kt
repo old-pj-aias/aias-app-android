@@ -13,7 +13,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val intent = Intent(this, SignActivity::class.java)
-        intent.putExtra("message", "message")
+        intent.putExtra(Intent.EXTRA_TEXT, "hoge")
         startActivityForResult(intent, 9)
     }
 
@@ -25,7 +25,7 @@ class MainActivity : AppCompatActivity() {
         if (requestCode != 9) { return }
 
         if (resultCode == Activity.RESULT_OK && data != null) {
-            val message = data.getStringExtra("message")
+            val message = data.getStringExtra(Intent.EXTRA_TEXT)
             result = message
 
         } else if(resultCode == Activity.RESULT_CANCELED) {

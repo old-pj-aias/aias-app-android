@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kittinunf.fuel.Fuel
+import org.w3c.dom.Text
 import java.io.File
 import kotlin.concurrent.thread
 
@@ -57,9 +58,10 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
     "SCAN QR CODE");
 
     private val REQUEST_PNG_GET = 1
-    var ejPubkey : String? = null
-
     val SCAN_QR_CODE = "SCAN QR CODE"
+
+    var ejPubkey : String? = null
+    var message : String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -96,60 +98,66 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
     override fun onClick(v: View?) {
         val intent = intent
-        val text = intent.getStringExtra("message")
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
 
-        when (v!!.id) {
-            R.id.submit_phone -> {
-                val spinner = findViewById<Spinner>(R.id.spinner)
-                val ejIndex = spinner.selectedItem as String;
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
 
-                if (ejIndex == SCAN_QR_CODE) {
-                    val intent = Intent(Intent.ACTION_GET_CONTENT)
-                    intent.type = "image/png"
+        intent.putExtra(Intent.EXTRA_TEXT, "piyo")
+        setResult(Activity.RESULT_OK, intent)
+        finish()
 
-                    if (intent.resolveActivity(packageManager) != null) {
-                        startActivityForResult(intent, REQUEST_PNG_GET)
-                    }
-                }
-
-                else {
-                    ejPubkey = ejPubkeys[ejIndex.toInt()];
-
-                }
-            }
-
-            R.id.submit_code -> {
-                thread {
-                    Aias.new(signerKey, ejPubkey);
-
-                    val blindedDigest = Aias.blind(text);
-
-                    val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
-                        .body(blindedDigest!!)
-                        .response()
-
-                    val subset = String(readyResponse.data)
-                    Aias.setSubset(subset)
-
-                    val checkParam = Aias.generateCheckParameter();
-
-                    val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
-                        .body(checkParam!!)
-                        .response()
-
-                    val blindSignature = String(signResponse.data)
-                    val signature = Aias.unblind(blindSignature)
-
-                    runOnUiThread {
-                        Toast.makeText(this, signature, Toast.LENGTH_LONG).show();
-
-                        intent.putExtra("message", signature)
-                        setResult(Activity.RESULT_OK, intent)
-                        finish()
-                    }
-                }
-            }
-        }
+//        when (v!!.id) {
+//            R.id.submit_phone -> {
+//                val spinner = findViewById<Spinner>(R.id.spinner)
+//                val ejIndex = spinner.selectedItem as String;
+//
+//                if (ejIndex == SCAN_QR_CODE) {
+//                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+//                    intent.type = "image/png"
+//
+//                    if (intent.resolveActivity(packageManager) != null) {
+//                        startActivityForResult(intent, REQUEST_PNG_GET)
+//                    }
+//                }
+//
+//                else {
+//                    ejPubkey = ejPubkeys[ejIndex.toInt()];
+//
+//                }
+//            }
+//
+//            R.id.submit_code -> {
+//                thread {
+//                    Aias.new(signerKey, ejPubkey);
+//
+//                    val blindedDigest = Aias.blind(text);
+//
+//                    val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
+//                        .body(blindedDigest!!)
+//                        .response()
+//
+//                    val subset = String(readyResponse.data)
+//                    Aias.setSubset(subset)
+//
+//                    val checkParam = Aias.generateCheckParameter();
+//
+//                    val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
+//                        .body(checkParam!!)
+//                        .response()
+//
+//                    val blindSignature = String(signResponse.data)
+//                    val signature = Aias.unblind(blindSignature)
+//
+//                    runOnUiThread {
+//                        Toast.makeText(this, signature, Toast.LENGTH_LONG).show();
+//
+//                        intent.putExtra("message", signature)
+//                        setResult(Activity.RESULT_OK, intent)
+//                        finish()
+//                    }
+//                }
+//            }
+//        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
