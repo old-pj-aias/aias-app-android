@@ -7,15 +7,19 @@ import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
+import android.widget.EditText
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.Fuel
-import org.w3c.dom.Text
-import java.io.File
+import com.github.kittinunf.fuel.core.FuelManager
+import java.net.URLDecoder
 import kotlin.concurrent.thread
 
+data class IdResp(val id: Int)
 
 class SignActivity : AppCompatActivity(), View.OnClickListener {
     val signerKey = """-----BEGIN PUBLIC KEY-----
@@ -57,12 +61,18 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 -----END PUBLIC KEY-----""",
     "SCAN QR CODE");
 
+    val phoneReqTemplate = """{"phone_number":"PHONE_NUMBER"}"""
+    val codeReqTemplate = """{"code":CODE}"""
+
     private val REQUEST_PNG_GET = 1
+    private val REQUEST_NOPNG_GET = 2
+
     val SCAN_QR_CODE = "SCAN QR CODE"
 
     var ejPubkey : String? = null
     var message : String? = null
-
+    var phoneNumber : String? = null
+    var cookieHeader : Map<String, String>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -100,70 +110,88 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         val intent = intent
         val text = intent.getStringExtra(Intent.EXTRA_TEXT)
 
-        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+        when (v!!.id) {
+            R.id.submit_phone -> {
+                val spinner = findViewById<Spinner>(R.id.spinner)
+                val ejIndex = spinner.selectedItem as String;
 
-        intent.putExtra(Intent.EXTRA_TEXT, "piyo")
-        setResult(Activity.RESULT_OK, intent)
-        finish()
+                if (ejIndex == SCAN_QR_CODE) {
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                    intent.type = "image/png"
 
-//        when (v!!.id) {
-//            R.id.submit_phone -> {
-//                val spinner = findViewById<Spinner>(R.id.spinner)
-//                val ejIndex = spinner.selectedItem as String;
-//
-//                if (ejIndex == SCAN_QR_CODE) {
-//                    val intent = Intent(Intent.ACTION_GET_CONTENT)
-//                    intent.type = "image/png"
-//
-//                    if (intent.resolveActivity(packageManager) != null) {
-//                        startActivityForResult(intent, REQUEST_PNG_GET)
-//                    }
-//                }
-//
-//                else {
-//                    ejPubkey = ejPubkeys[ejIndex.toInt()];
-//
-//                }
-//            }
-//
-//            R.id.submit_code -> {
-//                thread {
-//                    Aias.new(signerKey, ejPubkey);
-//
-//                    val blindedDigest = Aias.blind(text);
-//
-//                    val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
-//                        .body(blindedDigest!!)
-//                        .response()
-//
-//                    val subset = String(readyResponse.data)
-//                    Aias.setSubset(subset)
-//
-//                    val checkParam = Aias.generateCheckParameter();
-//
-//                    val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
-//                        .body(checkParam!!)
-//                        .response()
-//
-//                    val blindSignature = String(signResponse.data)
-//                    val signature = Aias.unblind(blindSignature)
-//
-//                    runOnUiThread {
-//                        Toast.makeText(this, signature, Toast.LENGTH_LONG).show();
-//
-//                        intent.putExtra("message", signature)
-//                        setResult(Activity.RESULT_OK, intent)
-//                        finish()
-//                    }
-//                }
-//            }
-//        }
+                    if (intent.resolveActivity(packageManager) != null) {
+                        startActivityForResult(intent, REQUEST_PNG_GET)
+                    }
+                }
+
+                else {
+                    ejPubkey = ejPubkeys[ejIndex.toInt()];
+
+                    val intent = Intent()
+
+                    thread {
+                        runOnUiThread {
+                            onActivityResult(REQUEST_NOPNG_GET, RESULT_OK, intent);
+                        }
+                    }
+                }
+            }
+
+            R.id.submit_code -> {
+                thread {
+                    val secretCode = findViewById<EditText>(R.id.secret_code).text.toString();
+                    val codeReqBody = codeReqTemplate.replace("CODE", secretCode!!);
+
+                    val (codeReq, codeResp, codeResult) = Fuel.post("http://192.168.0.24:8080/verify_code")
+                        .header(cookieHeader)
+                        .body(codeReqBody)
+                        .response()
+
+                    val codeRespStr = String(codeResp.data)
+
+                    val mapper = jacksonObjectMapper()
+                    val codeRespJson = mapper.readValue<IdResp>(codeRespStr)
+
+                    val id = codeRespJson.id;
+
+                    Aias.new(signerKey, ejPubkey);
+
+                    val blindedDigest = Aias.blind(text);
+
+                    val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
+                        .body(blindedDigest!!)
+                        .response()
+
+                    val subset = String(readyResponse.data)
+                    Aias.setSubset(subset)
+
+                    val checkParam = Aias.generateCheckParameter();
+
+                    val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
+                        .body(checkParam!!)
+                        .response()
+
+                    val blindSignature = String(signResponse.data)
+                    val signature = Aias.unblind(blindSignature)
+
+                    runOnUiThread {
+                        Toast.makeText(this, signature, Toast.LENGTH_LONG).show();
+
+                        intent.putExtra(Intent.EXTRA_TEXT, signature)
+                        setResult(Activity.RESULT_OK, intent)
+                        finish()
+                    }
+                }
+            }
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
 
-        if (requestCode == REQUEST_PNG_GET && resultCode == RESULT_OK) {
+        if (resultCode != RESULT_OK) return;
+
+        if (requestCode == REQUEST_PNG_GET) {
             val uri = data!!.data
             val inputStream = contentResolver.openInputStream(uri!!)
 
@@ -171,8 +199,24 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
             val qrReader = QRReader(bitmap)
             ejPubkey = qrReader.scan()
+        }
 
-            setContentView(R.layout.activity_sms_code)
+        phoneNumber = findViewById<EditText>(R.id.secret_code).text.toString();
+        val phoneReq = phoneReqTemplate.replace("PHONE_NUMBER", phoneNumber!!);
+
+        thread {
+            val (_, smsResponse, smsResult) = Fuel.post("http://192.168.0.24:8080/send_sms")
+                .body(phoneReq)
+                .response()
+
+            val cookie : String = smsResponse.headers["set-cookie"]?.first()!!
+//            val decodedCookie = URLDecoder.decode(cookie, "UTF-8");
+            val decodedCookie = cookie.split(' ').first()
+            cookieHeader = mapOf("Cookie" to decodedCookie)
+
+            runOnUiThread {
+                setContentView(R.layout.activity_sms_code)
+            }
         }
     }
 }
