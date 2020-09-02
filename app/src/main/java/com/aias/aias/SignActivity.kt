@@ -54,10 +54,12 @@ MDdfFUaoxMfRN/+Hl9iqiJovKUJQ3545N2fDYdd0eqSlqL1N5xJxYX1GDMtGZgME
 hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 /wIDAQAB
 -----END PUBLIC KEY-----""",
-    "OTHER");
+    "SCAN QR CODE");
 
     private val REQUEST_PNG_GET = 1
-    public var ejPubkey : String? = null
+    var ejPubkey : String? = null
+
+    val SCAN_QR_CODE = "SCAN QR CODE"
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -87,7 +89,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
             adapter.add(i.toString())
         }
 
-        adapter.add("OTHER")
+        adapter.add(SCAN_QR_CODE)
 
         spinner.adapter = adapter
     }
@@ -101,7 +103,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                 val spinner = findViewById<Spinner>(R.id.spinner)
                 val ejIndex = spinner.selectedItem as String;
 
-                if (ejIndex == "OTHER") {
+                if (ejIndex == SCAN_QR_CODE) {
                     val intent = Intent(Intent.ACTION_GET_CONTENT)
                     intent.type = "image/png"
 
@@ -113,12 +115,6 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                 else {
                     ejPubkey = ejPubkeys[ejIndex.toInt()];
 
-                    val intent = Intent(Intent.ACTION_GET_CONTENT)
-                    intent.type = "text/png"
-
-                    if (intent.resolveActivity(packageManager) != null) {
-                        startActivityForResult(intent, REQUEST_PNG_GET)
-                    }
                 }
             }
 
@@ -164,6 +160,9 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
             val inputStream = contentResolver.openInputStream(uri!!)
 
             val bitmap = BitmapFactory.decodeStream(inputStream)
+
+            val qrReader = QRReader(bitmap)
+            ejPubkey = qrReader.scan()
 
             setContentView(R.layout.activity_sms_code)
         }
