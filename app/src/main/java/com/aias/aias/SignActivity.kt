@@ -2,6 +2,8 @@ package com.aias.aias
 
 import android.app.Activity
 import android.content.DialogInterface
+import android.content.Intent
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import android.widget.ArrayAdapter
@@ -10,6 +12,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.github.kittinunf.fuel.Fuel
+import java.io.File
 import kotlin.concurrent.thread
 
 
@@ -50,7 +53,11 @@ Zac8NWskP59EAVFlO218xIXOV0FfphPB/tnbQh7GDXddo7XVEptHdHXyJlXXLihb
 MDdfFUaoxMfRN/+Hl9iqiJovKUJQ3545N2fDYdd0eqSlqL1N5xJxYX1GDMtGZgME
 hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 /wIDAQAB
------END PUBLIC KEY-----""");
+-----END PUBLIC KEY-----""",
+    "OTHER");
+
+    private val REQUEST_PNG_GET = 1
+    public var ejPubkey : String? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +87,8 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
             adapter.add(i.toString())
         }
 
+        adapter.add("OTHER")
+
         spinner.adapter = adapter
     }
 
@@ -89,16 +98,32 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
         when (v!!.id) {
             R.id.submit_phone -> {
-                setContentView(R.layout.activity_sms_code)
+                val spinner = findViewById<Spinner>(R.id.spinner)
+                val ejIndex = spinner.selectedItem as String;
+
+                if (ejIndex == "OTHER") {
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                    intent.type = "image/png"
+
+                    if (intent.resolveActivity(packageManager) != null) {
+                        startActivityForResult(intent, REQUEST_PNG_GET)
+                    }
+                }
+
+                else {
+                    ejPubkey = ejPubkeys[ejIndex.toInt()];
+
+                    val intent = Intent(Intent.ACTION_GET_CONTENT)
+                    intent.type = "text/png"
+
+                    if (intent.resolveActivity(packageManager) != null) {
+                        startActivityForResult(intent, REQUEST_PNG_GET)
+                    }
+                }
             }
 
             R.id.submit_code -> {
                 thread {
-                    val spinner = findViewById<Spinner>(R.id.spinner)
-
-                    val ejIndex = spinner.selectedItem as String;
-                    val ejPubkey = ejPubkeys.get(ejIndex.toInt());
-
                     Aias.new(signerKey, ejPubkey);
 
                     val blindedDigest = Aias.blind(text);
@@ -128,6 +153,19 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                     }
                 }
             }
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == REQUEST_PNG_GET && resultCode == RESULT_OK) {
+            val uri = data!!.data
+            val inputStream = contentResolver.openInputStream(uri!!)
+
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+
+            setContentView(R.layout.activity_sms_code)
         }
     }
 }
