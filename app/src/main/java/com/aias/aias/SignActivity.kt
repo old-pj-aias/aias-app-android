@@ -16,6 +16,7 @@ import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FuelManager
+import java.lang.Exception
 import java.net.URLDecoder
 import kotlin.concurrent.thread
 
@@ -157,50 +158,56 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         Toast.makeText(this, "Just a moments", Toast.LENGTH_LONG).show()
 
         thread {
+            try {
+                val password = Crypto.loadPassword(this);
+                val tokenReq = tokenReqTemplate.replace("TOKEN", password!!);
 
-            val password = Crypto.loadPassword(this);
-            val tokenReq = tokenReqTemplate.replace("TOKEN", password!!);
-
-            val (_, authResponse, authResult) = Fuel.post("http://192.168.0.24:8080/auth")
-                .body(tokenReq)
-                .response()
+                val (_, authResponse, authResult) = Fuel.post("http://192.168.0.24:8080/auth")
+                    .body(tokenReq)
+                    .response()
 
 
-            val cookie : String = authResponse.headers["set-cookie"]?.first()!!
-            val decodedCookie = cookie.split(' ').first()
-            cookieHeader = mapOf("Cookie" to decodedCookie)
+                val cookie: String = authResponse.headers["set-cookie"]?.first()!!
+                val decodedCookie = cookie.split(' ').first()
+                cookieHeader = mapOf("Cookie" to decodedCookie)
 
-            val authenResp = String(authResponse.data)
-            val mapper = jacksonObjectMapper()
-            val idResp = mapper.readValue<IdResp>(authenResp)
+                val authenResp = String(authResponse.data)
+                val mapper = jacksonObjectMapper()
+                val idResp = mapper.readValue<IdResp>(authenResp)
 
-            Aias.new(signerKey, ejPubkey, idResp.id.toString());
+                Aias.new(signerKey, ejPubkey, idResp.id.toString());
 
-            val blindedDigest = Aias.ready(text, ejPubkey);
+                val blindedDigest = Aias.ready(text, ejPubkey);
 
-            val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
-                .header(cookieHeader)
-                .body(blindedDigest!!)
-                .response()
+                val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
+                    .header(cookieHeader)
+                    .body(blindedDigest!!)
+                    .response()
 
-            val subset = String(readyResponse.data)
-            Aias.setSubset(subset)
+                val subset = String(readyResponse.data)
+                Aias.setSubset(subset)
 
-            val checkParam = Aias.generateCheckParameter();
+                val checkParam = Aias.generateCheckParameter();
 
-            val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
-                .header(cookieHeader)
-                .body(checkParam!!)
-                .response()
+                val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
+                    .header(cookieHeader)
+                    .body(checkParam!!)
+                    .response()
 
-            val blindSignature = String(signResponse.data)
-            val signature = Aias.unblind(blindSignature)
+                val blindSignature = String(signResponse.data)
+                val signature = Aias.unblind(blindSignature)
 
-            runOnUiThread {
-                intent.putExtra(Intent.EXTRA_TEXT, signature)
-                setResult(Activity.RESULT_OK, intent)
-                finish()
+                runOnUiThread {
+                    intent.putExtra(Intent.EXTRA_TEXT, signature)
+                    setResult(Activity.RESULT_OK, intent)
+                    finish()
+                }
+            } catch (e: Exception) {
+                runOnUiThread {
+                    Toast.makeText(this, "Error: " + e.message, Toast.LENGTH_LONG).show();
+                }
             }
         }
+
     }
 }
