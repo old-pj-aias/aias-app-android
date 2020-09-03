@@ -12,13 +12,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+//        val intentA = Intent(this, SmsActivity::class.java)
+//        startActivity(intentA)
 
-        val intent = Intent(this, SmsActivity::class.java)
-        startActivity(intent)
-
-//        val intent = Intent(this, SignActivity::class.java)
-//        intent.putExtra(Intent.EXTRA_TEXT, "hoge")
-//        startActivityForResult(intent, 9)
+        val intentB = Intent(this, SignActivity::class.java)
+        intentB.putExtra(Intent.EXTRA_TEXT, "hoge")
+        startActivityForResult(intentB, 9)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
