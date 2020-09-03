@@ -19,7 +19,6 @@ import com.github.kittinunf.fuel.core.FuelManager
 import java.net.URLDecoder
 import kotlin.concurrent.thread
 
-data class IdResp(val id: Int)
 
 class SignActivity : AppCompatActivity(), View.OnClickListener {
     val signerKey = """-----BEGIN PUBLIC KEY-----
@@ -77,7 +76,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_phone)
-        setResult(Activity.RESULT_CANCELED);
+        setResult(Activity.RESULT_CANCELED)
 
         AlertDialog.Builder(this)
             .setTitle("warning")
@@ -184,40 +183,6 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                         finish()
                     }
                 }
-            }
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-
-        if (resultCode != RESULT_OK) return;
-
-        if (requestCode == REQUEST_PNG_GET) {
-            val uri = data!!.data
-            val inputStream = contentResolver.openInputStream(uri!!)
-
-            val bitmap = BitmapFactory.decodeStream(inputStream)
-
-            val qrReader = QRReader(bitmap)
-            ejPubkey = qrReader.scan()
-        }
-
-        phoneNumber = findViewById<EditText>(R.id.secret_code).text.toString();
-        val phoneReq = phoneReqTemplate.replace("PHONE_NUMBER", phoneNumber!!);
-
-        thread {
-            val (_, smsResponse, smsResult) = Fuel.post("http://192.168.0.24:8080/send_sms")
-                .body(phoneReq)
-                .response()
-
-            val cookie : String = smsResponse.headers["set-cookie"]?.first()!!
-//            val decodedCookie = URLDecoder.decode(cookie, "UTF-8");
-            val decodedCookie = cookie.split(' ').first()
-            cookieHeader = mapOf("Cookie" to decodedCookie)
-
-            runOnUiThread {
-                setContentView(R.layout.activity_sms_code)
             }
         }
     }
