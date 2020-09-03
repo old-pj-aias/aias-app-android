@@ -61,8 +61,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 -----END PUBLIC KEY-----""",
     "SCAN QR CODE");
 
-    val phoneReqTemplate = """{"phone_number":"PHONE_NUMBER"}"""
-    val codeReqTemplate = """{"code":CODE}"""
+    val tokenReqTemplate = """{"token": "TOKEN"}"""
 
     private val REQUEST_PNG_GET = 1
     private val REQUEST_NOPNG_GET = 2
@@ -76,8 +75,8 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_phone)
-        setResult(Activity.RESULT_CANCELED);
+        setContentView(R.layout.activity_sign)
+        setResult(Activity.RESULT_CANCELED)
 
         AlertDialog.Builder(this)
             .setTitle("warning")
@@ -107,9 +106,6 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
     }
 
     override fun onClick(v: View?) {
-        val intent = intent
-        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
-
         when (v!!.id) {
             R.id.submit_phone -> {
                 val spinner = findViewById<Spinner>(R.id.spinner)
@@ -136,60 +132,14 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                     }
                 }
             }
-
-            R.id.submit_code -> {
-                thread {
-                    val secretCode = findViewById<EditText>(R.id.secret_code).text.toString();
-                    val codeReqBody = codeReqTemplate.replace("CODE", secretCode!!);
-
-                    val (codeReq, codeResp, codeResult) = Fuel.post("http://192.168.0.24:8080/verify_code")
-                        .header(cookieHeader)
-                        .body(codeReqBody)
-                        .response()
-
-                    val codeRespStr = String(codeResp.data)
-
-                    val mapper = jacksonObjectMapper()
-                    val codeRespJson = mapper.readValue<IdResp>(codeRespStr)
-
-                    val id = codeRespJson.id;
-
-                    Aias.new(signerKey, ejPubkey, id.toString());
-
-                    val blindedDigest = Aias.ready(text, ejPubkey);
-
-                    val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
-                        .header(cookieHeader)
-                        .body(blindedDigest!!)
-                        .response()
-
-                    val subset = String(readyResponse.data)
-                    Aias.setSubset(subset)
-
-                    val checkParam = Aias.generateCheckParameter();
-
-                    val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
-                        .header(cookieHeader)
-                        .body(checkParam!!)
-                        .response()
-
-                    val blindSignature = String(signResponse.data)
-                    val signature = Aias.unblind(blindSignature)
-
-                    runOnUiThread {
-                        Toast.makeText(this, signature, Toast.LENGTH_LONG).show();
-
-                        intent.putExtra(Intent.EXTRA_TEXT, signature)
-                        setResult(Activity.RESULT_OK, intent)
-                        finish()
-                    }
-                }
-            }
         }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
+
+        val intent = intent
+        val text = intent.getStringExtra(Intent.EXTRA_TEXT)
 
         if (resultCode != RESULT_OK) return;
 
@@ -203,21 +153,53 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
             ejPubkey = qrReader.scan()
         }
 
-        phoneNumber = findViewById<EditText>(R.id.secret_code).text.toString();
-        val phoneReq = phoneReqTemplate.replace("PHONE_NUMBER", phoneNumber!!);
+
+        Toast.makeText(this, "Just a moments", Toast.LENGTH_LONG).show()
 
         thread {
-            val (_, smsResponse, smsResult) = Fuel.post("http://192.168.0.24:8080/send_sms")
-                .body(phoneReq)
+
+            val password = Crypto.loadPassword(this);
+            val tokenReq = tokenReqTemplate.replace("TOKEN", password!!);
+
+            val (_, authResponse, authResult) = Fuel.post("http://192.168.0.24:8080/auth")
+                .body(tokenReq)
                 .response()
 
-            val cookie : String = smsResponse.headers["set-cookie"]?.first()!!
-//            val decodedCookie = URLDecoder.decode(cookie, "UTF-8");
+
+            val cookie : String = authResponse.headers["set-cookie"]?.first()!!
             val decodedCookie = cookie.split(' ').first()
             cookieHeader = mapOf("Cookie" to decodedCookie)
 
+            val authenResp = String(authResponse.data)
+            val mapper = jacksonObjectMapper()
+            val idResp = mapper.readValue<IdResp>(authenResp)
+
+            Aias.new(signerKey, ejPubkey, idResp.id.toString());
+
+            val blindedDigest = Aias.ready(text, ejPubkey);
+
+            val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
+                .header(cookieHeader)
+                .body(blindedDigest!!)
+                .response()
+
+            val subset = String(readyResponse.data)
+            Aias.setSubset(subset)
+
+            val checkParam = Aias.generateCheckParameter();
+
+            val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
+                .header(cookieHeader)
+                .body(checkParam!!)
+                .response()
+
+            val blindSignature = String(signResponse.data)
+            val signature = Aias.unblind(blindSignature)
+
             runOnUiThread {
-                setContentView(R.layout.activity_sms_code)
+                intent.putExtra(Intent.EXTRA_TEXT, signature)
+                setResult(Activity.RESULT_OK, intent)
+                finish()
             }
         }
     }
