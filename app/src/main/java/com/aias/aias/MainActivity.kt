@@ -3,21 +3,16 @@ package com.aias.aias
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import kotlin.concurrent.thread
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-//        val intentA = Intent(this, SmsActivity::class.java)
-//        startActivity(intentA)
-
-        val intentB = Intent(this, SignActivity::class.java)
-        intentB.putExtra(Intent.EXTRA_TEXT, "hoge")
-        startActivityForResult(intentB, 9)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -36,5 +31,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         Toast.makeText(this,  result, Toast.LENGTH_LONG).show();
+    }
+
+    override fun onClick(v: View?) {
+        when (v!!.id) {
+            R.id.register_button -> {
+                val intent = Intent(this, SmsActivity::class.java)
+                startActivity(intent)
+            }
+
+            R.id.test_button -> {
+                val intent = Intent(this, SignActivity::class.java)
+                intent.putExtra(Intent.EXTRA_TEXT, "hoge")
+                startActivityForResult(intent, 9)
+            }
+        }
     }
 }
