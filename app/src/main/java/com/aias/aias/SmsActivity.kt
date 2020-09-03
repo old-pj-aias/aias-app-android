@@ -1,22 +1,15 @@
 package com.aias.aias
 
-import android.app.Activity
-import android.content.Intent
-import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
-import android.widget.Spinner
-import android.widget.Toast
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.Fuel
 import kotlin.concurrent.thread
 
 data class TokenResp(val token: String)
-data class IdResp(val id: Int)
-
 
 class SmsActivity : AppCompatActivity(), View.OnClickListener{
     var phoneNumber : String? = null
@@ -63,7 +56,8 @@ class SmsActivity : AppCompatActivity(), View.OnClickListener{
                     val mapper = jacksonObjectMapper()
                     val verifyRespJson = mapper.readValue<TokenResp>(verifyRespStr)
 
-                    1 + 1
+                    Crypto.savePassword(this, verifyRespJson.token);
+                    finish()
                 }
             }
         }
