@@ -81,7 +81,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
         AlertDialog.Builder(this)
             .setTitle("warning")
-            .setMessage("Are you trust calling app?")
+            .setMessage("Do you trust the caller app?")
             .setPositiveButton("OK") { _, _ ->
 
             }
@@ -204,6 +204,8 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                 }
             } catch (e: Exception) {
                 runOnUiThread {
+                    intent.putExtra(Intent.EXTRA_TEXT, "NG")
+                    setResult(Activity.RESULT_CANCELED, intent)
                     Toast.makeText(this, "Error: " + e.message, Toast.LENGTH_LONG).show();
                 }
             }
