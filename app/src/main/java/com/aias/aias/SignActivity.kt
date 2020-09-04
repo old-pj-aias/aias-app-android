@@ -97,7 +97,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
             ArrayAdapter<String>(this, android.R.layout.simple_spinner_dropdown_item)
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
 
-        for (i in 1..ejPubkeys.size) {
+        for (i in 1 until ejPubkeys.size - 1) {
             adapter.add(i.toString())
         }
 
@@ -154,8 +154,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
             ejPubkey = qrReader.scan()
         }
 
-
-        Toast.makeText(this, "Just a moments", Toast.LENGTH_LONG).show()
+        Toast.makeText(this, "Just a moments", Toast.LENGTH_LONG * 30).show()
 
         thread {
             try {
@@ -165,7 +164,6 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                 val (_, authResponse, authResult) = Fuel.post("http://192.168.0.24:8080/auth")
                     .body(tokenReq)
                     .response()
-
 
                 val cookie: String = authResponse.headers["set-cookie"]?.first()!!
                 val decodedCookie = cookie.split(' ').first()
@@ -187,7 +185,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
                 val subset = String(readyResponse.data)
                 Aias.setSubset(subset)
 
-                val checkParam = Aias.generateCheckParameter();
+                val checkParam = Aias.generateCheckParameter()
 
                 val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
                     .header(cookieHeader)

@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
 import android.widget.EditText
+import android.widget.Toast
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.github.kittinunf.fuel.Fuel
@@ -27,6 +28,14 @@ class SmsActivity : AppCompatActivity(), View.OnClickListener{
         when (v!!.id) {
             R.id.submit_phone -> thread {
                 phoneNumber = findViewById<EditText>(R.id.secret_code).text.toString();
+                if (phoneNumber == "") {
+                    runOnUiThread {
+                        Toast.makeText(this, "Can't make phone number empty", Toast.LENGTH_LONG).show()
+                    }
+
+                    return@thread
+                }
+
                 val phoneReq = phoneReqTemplate.replace("PHONE_NUMBER", phoneNumber!!)
 
                 val (_, smsResponse, smsResult) = Fuel.post("http://192.168.0.24:8080/send_sms")
@@ -44,6 +53,12 @@ class SmsActivity : AppCompatActivity(), View.OnClickListener{
 
             R.id.submit_code -> thread {
                 val secretCode = findViewById<EditText>(R.id.secret_code).text.toString();
+                if (secretCode == "") {
+                    runOnUiThread{
+                        Toast.makeText(this, "Can't make code empty", Toast.LENGTH_LONG).show()
+                    }
+                    return@thread
+                }
                 val verifyReq = secretCodeTemaplate.replace("SECRET_CODE", secretCode!!)
 
                 thread {
@@ -57,7 +72,11 @@ class SmsActivity : AppCompatActivity(), View.OnClickListener{
                     val verifyRespJson = mapper.readValue<TokenResp>(verifyRespStr)
 
                     Crypto.savePassword(this, verifyRespJson.token);
-                    finish()
+
+                    runOnUiThread{
+                        Toast.makeText(this, "Registered", Toast.LENGTH_LONG).show()
+                        finish()
+                    }
                 }
             }
         }
