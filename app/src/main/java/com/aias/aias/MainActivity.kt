@@ -14,9 +14,9 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val intent = Intent(this, SignActivity::class.java)
-        intent.putExtra(Intent.EXTRA_TEXT, "hoge")
-        startActivityForResult(intent, 9)
+//        val intent = Intent(this, SignActivity::class.java)
+//        intent.putExtra(Intent.EXTRA_TEXT, "hoge")
+//        startActivityForResult(intent, 9)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
