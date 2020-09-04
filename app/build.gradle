@@ -1,19 +1,25 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
+
 
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
+    ndkVersion "21.3.6528147"
 
     defaultConfig {
-        applicationId "com.project_aias.aias"
+        applicationId "com.aias.aias"
         minSdkVersion 29
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
-
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        ndk {
+            abiFilters "arm64-v8a", "armeabi-v7a", "x86", "x86_64"
+        }
     }
 
     buildTypes {
@@ -24,6 +30,17 @@ android {
     }
 }
 
+apply plugin: 'org.mozilla.rust-android-gradle.rust-android'
+
+cargo {
+    module  = "../aiascore/android"
+    libname = "aiascoreandroid"
+    targets = ["arm", "x86"]
+    verbose = true
+}
+
+preBuild.dependsOn "cargoBuild"
+
 dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar"])
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -33,5 +50,8 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
-
+    implementation 'com.github.kittinunf.fuel:fuel:1.12.0'
+    implementation 'com.google.zxing:core:3.2.1'
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.0"
 }
+
