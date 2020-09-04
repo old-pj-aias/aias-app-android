@@ -159,9 +159,16 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
         thread {
             try {
                 val password = Crypto.loadPassword(this);
+                if (password == null) {
+                    runOnUiThread {
+                        Toast.makeText(this, "Register first!", Toast.LENGTH_LONG).show()
+                    }
+
+                    return@thread
+                }
                 val tokenReq = tokenReqTemplate.replace("TOKEN", password!!);
 
-                val (_, authResponse, authResult) = Fuel.post("http://192.168.0.24:8080/auth")
+                val (_, authResponse, authResult) = Fuel.post("http://10.0.2.2:8080/auth")
                     .body(tokenReq)
                     .response()
 
@@ -177,7 +184,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
                 val blindedDigest = Aias.ready(text, ejPubkey);
 
-                val (_, readyResponse, _) = Fuel.post("http://192.168.0.24:8080/ready")
+                val (_, readyResponse, _) = Fuel.post("http://10.0.2.2:8080/ready")
                     .header(cookieHeader)
                     .body(blindedDigest!!)
                     .response()
@@ -187,7 +194,7 @@ hHR6ntdfm7r43HDB4hk/MJIsNay6+K9tJBiz1qXG40G4NjMKzVrX9pi1Bv8G2RnP
 
                 val checkParam = Aias.generateCheckParameter()
 
-                val (_, signResponse, _) = Fuel.post("http://192.168.0.24:8080/sign")
+                val (_, signResponse, _) = Fuel.post("http://10.0.2.2:8080/sign")
                     .header(cookieHeader)
                     .body(checkParam!!)
                     .response()

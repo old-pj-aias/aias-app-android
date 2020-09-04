@@ -13,6 +13,10 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        val intent = Intent(this, SignActivity::class.java)
+        intent.putExtra(Intent.EXTRA_TEXT, "hoge")
+        startActivityForResult(intent, 9)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -38,12 +42,6 @@ class MainActivity : AppCompatActivity(), View.OnClickListener {
             R.id.register_button -> {
                 val intent = Intent(this, SmsActivity::class.java)
                 startActivity(intent)
-            }
-
-            R.id.test_button -> {
-                val intent = Intent(this, SignActivity::class.java)
-                intent.putExtra(Intent.EXTRA_TEXT, "hoge")
-                startActivityForResult(intent, 9)
             }
         }
     }

@@ -38,7 +38,7 @@ class SmsActivity : AppCompatActivity(), View.OnClickListener{
 
                 val phoneReq = phoneReqTemplate.replace("PHONE_NUMBER", phoneNumber!!)
 
-                val (_, smsResponse, smsResult) = Fuel.post("http://192.168.0.24:8080/send_sms")
+                val (_, smsResponse, smsResult) = Fuel.post("http://10.0.2.2:8080/send_sms")
                     .body(phoneReq)
                     .response()
 
@@ -62,7 +62,7 @@ class SmsActivity : AppCompatActivity(), View.OnClickListener{
                 val verifyReq = secretCodeTemaplate.replace("SECRET_CODE", secretCode!!)
 
                 thread {
-                    val (_, verifyResponse, verifyResult) = Fuel.post("http://192.168.0.24:8080/verify_code")
+                    val (_, verifyResponse, verifyResult) = Fuel.post("http://10.0.2.2:8080/verify_code")
                         .body(verifyReq)
                         .header(cookieHeader)
                         .response()
